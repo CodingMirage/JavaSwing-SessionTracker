@@ -1,3 +1,25 @@
+# 📚 Session Tracker
+
+<div align="center">
+
+![Java](https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
+![Swing](https://img.shields.io/badge/Swing-GUI-blue?style=for-the-badge)
+![SQLite](https://img.shields.io/badge/SQLite-07405E?style=for-the-badge&logo=sqlite&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-005C84?style=for-the-badge&logo=mysql&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
+
+</div>
+
+**A modern desktop application for managing lab session logbooks with cloud synchronization**
+
+### 🔗 Project Structure
+DigiLogBook is a distributed system consisting of two main components:
+
+* **Client - Session Tracker (This Repo):** Developed by [@CodingMirage](https://github.com/CodingMirage). It provides the desktop user interface for student attendance and local log entry.
+* **Server - DigiLogBook:** Developed by [@mohammedrayyan12](https://github.com/mohammedrayyan12). It manages the **Supabase** cloud integration, data persistence, and fail-safe synchronization logic.
+
+**Server Repository:** [DigiLogBook-Server](https://github.com/mohammedrayyan12/JavaSwing-DigiLogBook)
+
 ### Session Tracker – Automated Lab Usage Logging System
 
 Session Tracker is a Java-based desktop application designed to **automatically record student lab usage sessions** on Windows systems, eliminating the need for manual logbooks in college computer labs.
