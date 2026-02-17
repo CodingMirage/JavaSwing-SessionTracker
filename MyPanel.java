@@ -1,8 +1,18 @@
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
+
 
 class MyPanel extends JPanel {
     JLabel l1,l2,l3,l4,l5;
+
+    // added >
+    JLabel labLabel; 
+    JComboBox<String> labSub; 
+    JPanel Subject; 
+    // < added
+
     JButton jb1,jb2,jb3,jb4;
     JTextField tf1,tf2;
     JPasswordField tf3;
@@ -44,15 +54,24 @@ class MyPanel extends JPanel {
         l1.setBounds(130,95,150,30);
         l2 = new JLabel("USN");
         l2.setBounds(130,145,150,30);
+
+        // added >
+        Subject = new JPanel(new FlowLayout());
+        labLabel = new JLabel("Lab: "); Subject.add(labLabel);
+        List<String> subjects = AppBackend.configMap.getOrDefault("Subject", new ArrayList<>());
+        labSub = new JComboBox<>(subjects.toArray(new String[0])); Subject.add(labSub);
+        Subject.setBounds(130, 205, 150, 30);
+        // < added
+
         l5 = new JLabel("LOGIN");
         l5.setBounds(155,20,150,50);
         l5.setFont(l5.getFont().deriveFont(Font.BOLD));
         l5.setFont(l5.getFont().deriveFont(30f));
         jb1 = new JButton("Submit");
-        jb1.setBounds(130,220,150,25);
+        jb1.setBounds(130,270,150,25);   // 220 -> 270
         jb1.setActionCommand("login_submit");
         jb2 = new JButton("Log In as Admin ?");
-        jb2.setBounds(130,300,150,25);
+        jb2.setBounds(130,330,150,25);   // 300 -> 330
         jb2.setBorderPainted(false);
         jb2.setContentAreaFilled(false);
         jb2.setForeground(Color.blue);
@@ -63,6 +82,7 @@ class MyPanel extends JPanel {
         this.add(tf2);
         this.add(l1);
         this.add(l2);
+        this.add(Subject);
         this.add(l5);
     }
 }
