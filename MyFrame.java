@@ -25,10 +25,10 @@ class MyFrame extends JFrame implements ActionListener {
         String cmd = ae.getActionCommand();
         if("login_submit".equals(cmd)) {
             String Username = p1.tf1.getText().trim();
-            String USN = p1.tf2.getText();
+            String USN = p1.tf2.getText().toUpperCase();
+            String Subcode = (String) p1.cb1.getSelectedItem();
             if(ValueCheck(USN,Username)) {
-                //AppBackend ab1 = new AppBackend();
-                new AppBackend().insertData(Username,USN);
+                new AppBackend().insertData(Username,USN,Subcode);
                 CloudDatabaseUpload.syncLocalDataToRemote();
                 System.exit(0);
             }
@@ -46,7 +46,7 @@ class MyFrame extends JFrame implements ActionListener {
         }
         else if("admin_submit".equals(cmd)) {
             String password = new String(p2.tf3.getPassword());
-            if (password.equals("admin"))
+            if (password.equals(ConfigLoader.getProperty("ADMIN_PASSWORD")))
                 System.exit(0);
             else
                 JOptionPane.showMessageDialog(this, "Wrong password");
@@ -62,7 +62,7 @@ class MyFrame extends JFrame implements ActionListener {
         if(usn.isEmpty() || name.isEmpty() || usn.length() != 10)
             return false;
         String pattern = "^1VI\\d{2}[A-Z]{2}\\d{3}$";
-        return usn.toUpperCase().matches(pattern);
+        return usn.matches(pattern);
 
     }
 }
