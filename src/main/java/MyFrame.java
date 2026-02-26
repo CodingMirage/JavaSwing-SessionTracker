@@ -1,63 +1,66 @@
+import javax.security.auth.Subject;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.StringJoiner;
 import java.util.UUID;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 
 class EditStudentDialog extends JDialog {
     private JTextField nameField;
     private JTextField usnField;
-    private JComboBox<String> semComboBox;
-    private JComboBox<String> deptComboBox;
-    private JComboBox<String> labSubComboBox;
-    private JComboBox<String> batchComboBox;
+    static List<JComboBox<String>> dynamicCombos = new ArrayList<>();
 
     private boolean confirmed = false;
 
-    public EditStudentDialog(JFrame parent, String[] stuData) {
-        super(parent, "Edit Student Data", true); // `true` makes it modal
+    public EditStudentDialog(JFrame parent, Map<String, String> stuData) {
+        super(parent, "Edit Student Data", true);
 
         // Create UI components
-        nameField = new JTextField(stuData[0]);
-        usnField = new JTextField(stuData[1]);
-        
-        String[] sem = AppBackend.configMap.getOrDefault("Sem", new ArrayList<>()).toArray(new String[0]);
-        semComboBox = new JComboBox<>(sem);
-        semComboBox.setSelectedItem(stuData[2]);
-    
-        String[] departments = AppBackend.configMap.getOrDefault("Department", new ArrayList<>()).toArray(new String[0]);
-        deptComboBox = new JComboBox<>(departments);
-        deptComboBox.setSelectedItem(stuData[3]);
+        nameField = new JTextField(stuData.get("name"));
+        usnField = new JTextField(stuData.get("usn"));
+        nameField.setEditable(false);
+        usnField.setEditable(false);
 
-        String[] labSubjects = AppBackend.configMap.getOrDefault("Subject", new ArrayList<>()).toArray(new String[0]);
-        labSubComboBox = new JComboBox<>(labSubjects);
-        labSubComboBox.setSelectedItem(stuData[4]);
-
-        String[] batches = AppBackend.configMap.getOrDefault("Batch", new ArrayList<>()).toArray(new String[0]);
-        batchComboBox = new JComboBox<>(batches);
-        batchComboBox.setSelectedItem(stuData[5]);
-        
-        // Add components to a panel
-        JPanel panel = new JPanel(new GridLayout(6, 2, 5, 5));
+        JPanel panel = new JPanel(new GridLayout(8, 2, 5, 5));
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         panel.add(new JLabel("Name:"));
         panel.add(nameField);
+
         panel.add(new JLabel("USN:"));
         panel.add(usnField);
-        panel.add(new JLabel("Lab"));
-        panel.add(labSubComboBox);
-        panel.add(new JLabel("Semester:"));
-        panel.add(semComboBox);
-        panel.add(new JLabel("Batch:"));
-        panel.add(batchComboBox);
-        panel.add(new JLabel("Department:"));
-        panel.add(deptComboBox);
+        
+        for (Map.Entry<String, List<String>> entry : AppBackend.configMap.entrySet()) {
+            String categoryName = entry.getKey();
+            List<String> options = entry.getValue();
+            
+            JComboBox<String> combo = new JComboBox<>(options.toArray(new String[0]));
+            combo.setName(categoryName); 
+            
+            combo.setSelectedItem(stuData.get(categoryName));
+
+            if (categoryName.equals("LabName")) {
+                combo.setSelectedItem(ConfigLoader.getLabName());
+                combo.setEnabled(false);
+            } else if (categoryName.equals("SysNo")) {
+                combo.setSelectedItem(ConfigLoader.getSysNo());
+                combo.setEnabled(false);
+            }
+            // Add component to panel
+            panel.add(new JLabel(categoryName)); 
+            panel.add(combo);
+
+            dynamicCombos.add(combo);
+        }
+
+        
 
         // Add action buttons
         JButton okButton = new JButton("OK");
@@ -98,14 +101,16 @@ class EditStudentDialog extends JDialog {
     public String[] getEditedData() {
         if (confirmed) {
             StringJoiner json = new StringJoiner(",", "{", "}");
-            json.add("\"Subject\":\"" + (String) labSubComboBox.getSelectedItem()+ "\"");
-            json.add("\"Department\":\"" + (String) deptComboBox.getSelectedItem()+ "\"");
-            json.add("\"Batch\":\"" + (String) batchComboBox.getSelectedItem() + "\"");
-            json.add("\"Semester\":\"" + (String) semComboBox.getSelectedItem() + "\"");
+            for (JComboBox<String> combo : dynamicCombos) {
+				String category = combo.getName();
+				String selected = combo.getSelectedItem().toString().trim();
+                json.add("\""+ category +"\":\"" + selected+ "\"");
+			}
+
             return new String[]{
                 nameField.getText().toUpperCase(),
                 usnField.getText().toUpperCase(),
-                LocalDateTime.now().toString(), //.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")), //toString()
                 json.toString(),
                 null,
                 UUID.randomUUID().toString()  
@@ -122,6 +127,7 @@ class MyFrame extends JFrame implements ActionListener {
         p1 = new MyPanel("Log-In");
         p1.jb1.addActionListener(this);
         p1.jb2.addActionListener(this);
+        p1.syncRefresh.addActionListener(this);
         this.getContentPane().setLayout(new GridBagLayout());
         this.getContentPane().add(p1);
         this.setResizable(false);
@@ -135,21 +141,43 @@ class MyFrame extends JFrame implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent ae){
         String cmd = ae.getActionCommand();
+        if ("sync_refresh".equals(cmd)) {
+            System.out.println("Syncing Configuration");
+            HelperFunctions.performSyncWithProgress(
+                getOwner(), 
+                ()->CloudDatabaseUpload.fetchConfigurationFromCloud(), 
+                ()-> {
+                    List<String> subjects = AppBackend.configMap.getOrDefault("Subject", new ArrayList<>());
+                    
+                    // Update the EXISTING JComboBox
+                    p1.labSub.setModel(new DefaultComboBoxModel<>(subjects.toArray(new String[0])));
+                    
+                    if (!subjects.isEmpty()) {
+                        p1.labSub.setSelectedIndex(subjects.size() - 1);
+                    }
+                    
+                    p1.revalidate();
+                    p1.repaint();
+                    System.out.println("Configuration Values Refreshed");
+                }
+            ); 
+        }
         if("login_submit".equals(cmd)) {
             String Username = p1.tf1.getText().trim();
             String USN = p1.tf2.getText();
             String sub = p1.labSub.getSelectedItem().toString();
             if(ValueCheck(USN,Username)) {
                 AppBackend ab1 = new AppBackend();
-                String[] stuData = ab1.getData(Username, USN.toUpperCase(), sub);
+                Map<String,String> stuData = ab1.getData(Username, USN.toUpperCase(), sub);
 
                 EditStudentDialog verificationDialog =  new EditStudentDialog(this, stuData);
                 verificationDialog.setVisible(true);
                 if (!verificationDialog.isConfirmed()) return;
                 
                 String[] updatedStudentData = verificationDialog.getEditedData();
-
                 new AppBackend().insertData(updatedStudentData);
+
+                this.setVisible(false); // hide the UI so it doesn't seem freezed 
                 CloudDatabaseUpload.syncLocalDataToRemote();
                 System.exit(0);
             }

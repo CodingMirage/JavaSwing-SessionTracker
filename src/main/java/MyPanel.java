@@ -11,6 +11,7 @@ class MyPanel extends JPanel {
     JLabel labLabel; 
     JComboBox<String> labSub; 
     JPanel Subject; 
+    JButton syncRefresh; 
     // < added
 
     JButton jb1,jb2,jb3,jb4;
@@ -56,19 +57,29 @@ class MyPanel extends JPanel {
         l2.setBounds(130,145,150,30);
 
         // added >
+
         Subject = new JPanel(new FlowLayout());
         labLabel = new JLabel("Lab: "); Subject.add(labLabel);
         List<String> subjects = AppBackend.configMap.getOrDefault("Subject", new ArrayList<>());
-        labSub = new JComboBox<>(subjects.toArray(new String[0])); Subject.add(labSub);
-        Subject.setBounds(130, 205, 150, 30);
+        labSub = new JComboBox<>(subjects.toArray(new String[0]));
+        labSub.setMaximumRowCount(12); // Maximum items displayed before ScrollPane acts 
+        labSub.setSelectedIndex(subjects.size()-1); Subject.add(labSub);
+
+        Subject.setBounds(130, 205, 180, 30);
         // < added
+
+        // Refresh button
+        syncRefresh = new JButton("\u27F3");
+        syncRefresh.setActionCommand("sync_refresh");
+        syncRefresh.setBounds(280,270,50,25);
+        this.add(syncRefresh);
 
         l5 = new JLabel("LOGIN");
         l5.setBounds(155,20,150,50);
         l5.setFont(l5.getFont().deriveFont(Font.BOLD));
         l5.setFont(l5.getFont().deriveFont(30f));
         jb1 = new JButton("Submit");
-        jb1.setBounds(130,270,150,25);   // 220 -> 270
+        jb1.setBounds(130,270,100,25);   // 220 -> 270
         jb1.setActionCommand("login_submit");
         jb2 = new JButton("Log In as Admin ?");
         jb2.setBounds(130,330,150,25);   // 300 -> 330

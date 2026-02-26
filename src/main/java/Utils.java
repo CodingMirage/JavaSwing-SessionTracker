@@ -1,25 +1,126 @@
+import java.awt.*;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
+import javax.swing.BorderFactory;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JProgressBar;
+import javax.swing.SwingUtilities;
+
+// JSON parsing
+import com.google.gson.Gson;
+import java.lang.reflect.Type;
+import com.google.gson.reflect.TypeToken;
+
+
+class HelperFunctions {
+    public static void performSyncWithProgress(Window parent, Runnable syncTask, Runnable onComplete) {
+        JDialog syncDialog = new JDialog(parent, "Data Sync", Dialog.ModalityType.APPLICATION_MODAL);
+        syncDialog.setUndecorated(true);
+        
+        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        panel.setBorder(BorderFactory.createLineBorder(Color.GRAY, 2));
+        
+        JLabel label = new JLabel("\u27F3 Syncing with Cloud... Please wait.", JLabel.CENTER);
+        JProgressBar progressBar = new JProgressBar();
+        progressBar.setIndeterminate(true); // Spinning effect
+        
+        panel.add(label, BorderLayout.NORTH);
+        panel.add(progressBar, BorderLayout.CENTER);
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        
+        syncDialog.add(panel);
+        syncDialog.pack();
+        syncDialog.setLocationRelativeTo(parent);
+
+        // Start the background thread
+        new Thread(() -> {
+            try {
+                syncTask.run();  
+            } finally {
+                SwingUtilities.invokeLater(() -> {
+                    syncDialog.dispose();
+                    onComplete.run(); // when background thread finishes 
+                });
+            }
+        }).start();
+
+        // Show the dialog until background thread is running to avoid user interaction 
+        syncDialog.setVisible(true);
+    }
+
+    public static void refreshSubjects() {
+
+    }
+
+}
+
+class CloudAPI {
+    
+    public static Object callEdgeFunction(String func, String jsonData) {
+
+        String anonKey = ConfigLoader.getAnonKey();
+
+        final String BASE_URL = ConfigLoader.getProjectUrl()+"/functions/v1/client-api";
+
+        // Parse the json to List of records
+        Gson gson = new Gson();
+        Type listType = new TypeToken<List<Map<String, Object>>>(){}.getType();
+
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(BASE_URL))
+            .header("Authorization", "Bearer " + anonKey)
+            .header("X-Function", func)
+            .header("Content-Type", "application/json")
+            .POST(HttpRequest.BodyPublishers.ofString(jsonData))
+            .build();
+
+        try {
+            // Receive response after sending request
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            
+            if (response.statusCode() >= 400) {
+                System.err.println("Cloud Error (" + response.statusCode() + "): " + response.body());
+                return null;
+            }
+            
+            String body = response.body();
+            // Parse the body into list
+            if (body.trim().startsWith("[")) {
+                return gson.fromJson(body, listType);
+            } else {
+                return gson.fromJson(body, Map.class);
+            }
+        } catch (Exception e) {
+            System.err.println("Network/Parsing Error: " + e.getMessage());
+            return null;
+        }
+    }
+}
+
 
 class ConfigLoader {
 
@@ -128,36 +229,27 @@ class ConfigLoader {
         }
     }
 
-    public static LocalDate getLocalLastRunDate() {
-        String dateStr = config.getProperty("local.auto.delete.last.run.date");
-        if (dateStr == null) {
-            return null;
-        }
-        return LocalDate.parse(dateStr);
-    }
-
     public static String getLocalDBUrl() {
         final String DB_FILE_NAME = config.getProperty("JDBC_URL_local");
 
         return "jdbc:sqlite:" + CONFIG_DIR_PATH.resolve(DB_FILE_NAME).toString();
     }
-    
-    public static void setLocalLastRunDateToNow() throws IOException {
-        config.setProperty("local.auto.delete.last.run.date", LocalDate.now().toString());
-        try (FileWriter writer = new FileWriter(CONFIG_FILE_PATH.toFile())) {
-            config.store(writer, "Configuration settings updated by user interface");
-        }
+
+    public static String getAnonKey() {
+        return config.getProperty("anon.key");
     }
 
-    public static void setAutoDeleteDuration(String property,String duration) {
-        config.setProperty(property, duration);
-        try (FileWriter writer = new FileWriter(CONFIG_FILE_PATH.toFile())) {
-            config.store(writer, "Configuration settings updated by user interface");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public static String getProjectUrl() {
+        return config.getProperty("project.url");
     }
 
+    public static String getLabName() {
+        return config.getProperty("lab.name");
+    }
+
+    public static String getSysNo() {
+        return config.getProperty("sys.no");
+    }
 }
 
 class OptionsManager {
