@@ -1,1 +1,7 @@
+data.db
+.gitattributes
 config.properties
+build/
+.gradle/
+*.class
+bin/
