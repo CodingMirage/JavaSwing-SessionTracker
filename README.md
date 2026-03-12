@@ -16,18 +16,18 @@
 
 # 📑 Table of Contents
 
-1. [About the Project](#about-the-project)
-2. [Distributed System Architecture](#distributed-system-architecture)
-3. [Key Features](#key-features)
-4. [Technology Stack](#technology-stack)
-5. [Detailed System Workflow](#detailed-system-workflow)
-6. [Configuration & Deployment](#configuration--deployment)
-7. [Core Mechanics & Data Flow](#core-mechanics--data-flow)
-8. [Project Structure](#project-structure--key-files)
-9. [Installation & Deployment](#installation--deployment-inno-setup)
-10. [First-Time Usage & Configuration](#first-time-usage--configuration)
-11. [Future Enhancements & Roadmap](#future-enhancements--roadmap)
-12. [License & Acknowledgments](#license--acknowledgments)
+1. [About the Project](#-about-the-project)
+2. [Distributed System Architecture](#-distributed-system-architecture)
+3. [Key Features](#-key-features)
+4. [Technology Stack](#%EF%B8%8F-technology-stack)
+5. [Detailed System Workflow](#-detailed-system-workflow)
+6. [Configuration & Deployment](#%EF%B8%8F-configuration--deployment)
+7. [Core Mechanics & Data Flow](#%EF%B8%8F-core-mechanics--data-flow)
+8. [Project Structure & Key Files](#%EF%B8%8F-project-structure--key-files)
+9. [Installation & Deployment (Inno Setup)](#-installation--deployment-inno-setup)
+10. [First-Time Usage & Configuration](#-first-time-usage--configuration)
+11. [Future Enhancements & Roadmap](#-future-enhancements--roadmap)
+12. [License & Acknowledgments](#-license--acknowledgments)
 
 ---
 
