@@ -1,13 +1,13 @@
 [Setup]
 AppName=SessionTracker
 AppVersion=1.0
-DefaultDirName={pf}\SessionTracker
+DefaultDirName={autopf}\SessionTracker
 OutputDir=.
 OutputBaseFilename=SessionTrackerInstaller
 Compression=lzma
 SolidCompression=yes
 PrivilegesRequired=admin
-ArchitecturesInstallIn64BitMode=x64
+ArchitecturesInstallIn64BitMode=x64compatible
 
 [Files]
 Source: "gui\app-gui.jar"; DestDir: "{app}\gui"; Flags: ignoreversion
@@ -21,30 +21,54 @@ Source: "uninstall.bat"; DestDir: "{app}"; Flags: ignoreversion
 Filename: "cmd.exe"; Parameters: "/c install.bat"; WorkingDir: "{app}"; Flags: runhidden waituntilterminated
 
 [UninstallRun]
-Filename: "cmd.exe"; Parameters: "/c uninstall.bat"; WorkingDir: "{app}"; Flags: runhidden waituntilterminated runascurrentuser
+Filename: "cmd.exe"; Parameters: "/c uninstall.bat"; WorkingDir: "{app}"; Flags: runhidden waituntilterminated runascurrentuser; RunOnceId: "UninstallService"
 
 [Code]
 
 var
-  SystemNoPage: TInputQueryWizardPage;
+  SystemConfigPage: TInputQueryWizardPage;
 
 procedure InitializeWizard();
 begin
-  SystemNoPage := CreateInputQueryPage(
+  SystemConfigPage := CreateInputQueryPage(
     wpSelectDir,
     'System Configuration',
-    'Configure System Number',
-    'Please enter the SYSTEM_NO value for this installation.'
+    'Configure System Information',
+    'Please enter the System No and Lab Name for this installation.'
   );
 
-  SystemNoPage.Add('SYSTEM_NO:', False);
+  { System No field }
+  SystemConfigPage.Add('System No:', False);
 
-  { Default shown in installer }
-  SystemNoPage.Values[0] := 'LAB-M1';
+  { Lab Name field }
+  SystemConfigPage.Add('Lab Name:', False);
 end;
 
 
-procedure ReplaceSystemNoInFile(FileName, NewValue: string);
+function NextButtonClick(CurPageID: Integer): Boolean;
+begin
+  Result := True;
+
+  if CurPageID = SystemConfigPage.ID then
+  begin
+    if Trim(SystemConfigPage.Values[0]) = '' then
+    begin
+      MsgBox('Please enter the System No.', mbError, MB_OK);
+      Result := False;
+      Exit;
+    end;
+
+    if Trim(SystemConfigPage.Values[1]) = '' then
+    begin
+      MsgBox('Please enter the Lab Name.', mbError, MB_OK);
+      Result := False;
+      Exit;
+    end;
+  end;
+end;
+
+
+procedure ReplaceConfigValue(FileName, Key, NewValue: string);
 var
   Lines: TArrayOfString;
   I: Integer;
@@ -53,8 +77,8 @@ begin
   begin
     for I := 0 to GetArrayLength(Lines) - 1 do
     begin
-      if Pos('SYSTEM_NO=', Lines[I]) = 1 then
-        Lines[I] := 'SYSTEM_NO=' + NewValue;
+      if Pos(Key + '=', Lines[I]) = 1 then
+        Lines[I] := Key + '=' + NewValue;
     end;
 
     SaveStringsToFile(FileName, Lines, False);
@@ -70,12 +94,16 @@ procedure CurStepChanged(CurStep: TSetupStep);
 var
   ConfigPath: string;
   SystemNo: string;
+  LabName: string;
 begin
   if CurStep = ssPostInstall then
   begin
-    SystemNo := SystemNoPage.Values[0];
+    SystemNo := SystemConfigPage.Values[0];
+    LabName := SystemConfigPage.Values[1];
+
     ConfigPath := ExpandConstant('{app}\gui\config.properties');
 
-    ReplaceSystemNoInFile(ConfigPath, SystemNo);
+    ReplaceConfigValue(ConfigPath, 'SYSTEM_NO', SystemNo);
+    ReplaceConfigValue(ConfigPath, 'LAB_NAME', LabName);
   end;
 end;
