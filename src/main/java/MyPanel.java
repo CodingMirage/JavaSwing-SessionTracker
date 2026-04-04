@@ -1,13 +1,18 @@
+package org.Miniproject;
+
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
 
 class MyPanel extends JPanel {
-    JLabel l1,l2,l3,l4,l5,l6;
-    JButton jb1,jb2,jb3,jb4;
-    JTextField tf1,tf2;
+    JLabel l1,l2,l3,l4,l5,l6;              //you can change the variable names if you want
+    JButton jb1,jb2,jb3,jb4,jb5;           //for me naming variables is a tedious tasks
+    JTextField tf1,tf2;                    //hence I avoid it as much as possible :)
     JPasswordField tf3;
     JComboBox<String> cb1;
-    // Below mypanel for admin login page
+
+    // Below panel for admin login page
+
     MyPanel() {
         this.setLayout(null);
         this.setPreferredSize(new Dimension(420,420));
@@ -34,7 +39,9 @@ class MyPanel extends JPanel {
         this.add(tf3);
         this.add(jb4);
     }
-    // Below mypanel for normal login page
+
+    // Below panel for normal login page
+
     MyPanel(String pname) {
         this.setName(pname);
         this.setLayout(null);
@@ -43,8 +50,8 @@ class MyPanel extends JPanel {
         tf1.setBounds(130,120,150,25);
         tf2 = new JTextField();
         tf2.setBounds(130,170,150,25);
-        String[] options = AppBackend.getDepartmentOrSubjectValues("Subject").toArray(new String[0]);
-        cb1 = new JComboBox<>(options);
+        String[] sub_options = AppBackend.getConfigValues("Subject").toArray(new String[0]); //fetches subject from Configuration table
+        cb1 = new JComboBox<>(sub_options);
         cb1.setBounds(130,220,150,25);
         l1 = new JLabel("Name");
         l1.setBounds(130,95,150,30);
@@ -65,8 +72,15 @@ class MyPanel extends JPanel {
         jb2.setContentAreaFilled(false);
         jb2.setForeground(Color.blue);
         jb2.setActionCommand("admin_panel");
+        ImageIcon icon = new ImageIcon(getClass().getResource("/images/sync_logo.png"));    //location of the icon relative to the project directory
+        Image img = icon.getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH);
+        jb5 = new JButton(new ImageIcon(img));
+        jb5.setBounds(305, 220, 25, 25);
+        jb5.setActionCommand("Sync");
+        jb5.setFocusPainted(false);
         this.add(jb1);
         this.add(jb2);
+        this.add(jb5);
         this.add(tf1);
         this.add(tf2);
         this.add(cb1);
@@ -75,4 +89,74 @@ class MyPanel extends JPanel {
         this.add(l5);
         this.add(l6);
     }
+
+    //Dialog box for Confirmation
+
+    public static void createDialog(Frame parent,String name,String usn,String subcode) {
+
+        JDialog dialog = new JDialog(parent, "Confirmation!", true);
+        dialog.setSize(400,250);
+        dialog.setLocationRelativeTo(parent);
+        dialog.setLayout(new BorderLayout(10,10));
+
+        ArrayList<String> Details = AppBackend.getDetails(usn);   //fetches details for confirmation
+
+        String[] sem_options = AppBackend.getConfigValues("Sem").toArray(new String[0]);
+        JComboBox<String> cb1 = new JComboBox<>(sem_options);
+        cb1.setSelectedItem(Details.get(2));
+
+        String[] batch_options = AppBackend.getConfigValues("Batch").toArray(new String[0]);
+        JComboBox<String> cb2 = new JComboBox<>(batch_options);
+        cb2.setSelectedItem(Details.get(4));
+
+        JPanel form = new JPanel(new GridLayout(6,2,10,10));
+        form.setBorder(BorderFactory.createEmptyBorder(5, 20, 5, 20));
+
+        form.add(new JLabel("Name:"));
+        form.add(new JLabel(name));
+
+        form.add(new JLabel("USN:"));
+        form.add(new JLabel(usn));
+
+        form.add(new JLabel("Subject code:"));
+        form.add(new JLabel(subcode));
+
+        form.add(new JLabel("Department:"));
+        form.add(new JLabel(Details.get(3)));
+
+        form.add(new JLabel("Semester:"));
+        form.add(cb1);
+
+        form.add(new JLabel("Batch:"));
+        form.add(cb2);
+
+        JPanel buttonPanel = new JPanel();
+        JButton okButton = new JButton("OK");
+        JButton cancelButton = new JButton("Cancel");
+
+        Details.add(0,name);
+        Details.add(1,usn);
+        Details.add(2,subcode);
+
+        okButton.addActionListener(e -> {
+            Details.set(5, (String) cb1.getSelectedItem());
+            Details.set(7, (String) cb2.getSelectedItem());
+            new AppBackend().insertData(Details);           //inserts in local db
+            CloudDatabaseUpload.syncLocalDataToRemote();    //syncs with cloud
+            System.exit(0);
+        });
+
+        cancelButton.addActionListener(e -> dialog.dispose());
+
+        buttonPanel.add(okButton);
+        buttonPanel.add(cancelButton);
+
+        dialog.add(form, BorderLayout.CENTER);
+        dialog.add(buttonPanel, BorderLayout.SOUTH);
+
+        dialog.getRootPane().setDefaultButton(okButton);
+        dialog.setVisible(true);
+    }
 }
+
+

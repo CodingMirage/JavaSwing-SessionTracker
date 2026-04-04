@@ -1,3 +1,5 @@
+package org.Miniproject;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -10,6 +12,7 @@ class MyFrame extends JFrame implements ActionListener {
         p1 = new MyPanel("Log-In");
         p1.jb1.addActionListener(this);
         p1.jb2.addActionListener(this);
+        p1.jb5.addActionListener(this);
         this.getContentPane().setLayout(new GridBagLayout());
         this.getContentPane().add(p1);
         this.setResizable(false);
@@ -19,6 +22,7 @@ class MyFrame extends JFrame implements ActionListener {
         this.setExtendedState(JFrame.MAXIMIZED_BOTH);
         this.setLocationRelativeTo(null);
         this.setVisible(true);
+        this.getRootPane().setDefaultButton(p1.jb1);
     }
     @Override
     public void actionPerformed(ActionEvent ae){
@@ -28,14 +32,16 @@ class MyFrame extends JFrame implements ActionListener {
             String USN = p1.tf2.getText().toUpperCase();
             String Subcode = (String) p1.cb1.getSelectedItem();
             if(ValueCheck(USN,Username)) {
-                new AppBackend().insertData(Username,USN,Subcode);
-                CloudDatabaseUpload.syncLocalDataToRemote();
-                System.exit(0);
+                MyPanel.createDialog(this,Username,USN,Subcode);  //loads the dialog
             }
             else
                 JOptionPane.showMessageDialog(this,"Invalid input");
         }
-        else if("admin_panel".equals(cmd)) {
+        else if("Sync".equals(cmd)) {
+            ConfigSyncManager.resetSyncFlag();
+            ConfigSyncManager.syncOnce();
+        }
+        else if("admin_panel".equals(cmd)) {    //changes panel to admin login
             this.getContentPane().remove(p1);
             p2 = new MyPanel();
             p2.jb3.addActionListener(this);
@@ -43,10 +49,11 @@ class MyFrame extends JFrame implements ActionListener {
             this.getContentPane().add(p2);
             this.revalidate();
             this.repaint();
+            this.getRootPane().setDefaultButton(p2.jb3);
         }
         else if("admin_submit".equals(cmd)) {
             String password = new String(p2.tf3.getPassword());
-            if (password.equals(ConfigLoader.getProperty("ADMIN_PASSWORD")))
+            if (password.equals(ConfigLoader.getProperty("ADMIN_PASSWORD")))  //checks for admin password
                 System.exit(0);
             else
                 JOptionPane.showMessageDialog(this, "Wrong password");
@@ -56,12 +63,13 @@ class MyFrame extends JFrame implements ActionListener {
             this.getContentPane().add(p1);
             this.revalidate();
             this.repaint();
+            this.getRootPane().setDefaultButton(p1.jb1);
         }
     }
     protected boolean ValueCheck(String usn,String name) {
         if(usn.isEmpty() || name.isEmpty() || usn.length() != 10)
             return false;
-        String pattern = "^1VI\\d{2}[A-Z]{2}\\d{3}$";
+        String pattern = "^1[A-Z]{2}\\d{2}[A-Z]{2}\\d{3}$";  //regex only for 10-digit USN (vtu pattern)
         return usn.matches(pattern);
 
     }
