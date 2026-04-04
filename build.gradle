@@ -1,0 +1,42 @@
+
+//To create the Shadow jar of the app consisting of all dependencies
+
+plugins {
+    id 'java'
+    id 'application'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
+}
+
+group = 'org.Miniproject'
+version = '1.0-SNAPSHOT'
+
+shadowJar {
+    archiveBaseName.set('app-gui')
+    archiveClassifier.set('') // This removes the "-all" suffix
+    archiveVersion.set('1.0') // Or whatever you want
+
+    mergeServiceFiles() // This merges the jar drivers service files properly
+}
+
+application {
+    mainClass = "org.Miniproject.Main"
+}
+
+run {
+    jvmArgs = ['--enable-native-access=ALL-UNNAMED']
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    //implementation files('libs/sqlite-jdbc-3.49.1.0.jar') // Just adds SQLite to classpath
+    implementation fileTree(dir: 'libs', include: ['*.jar']) // Shadow-friendly
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+test {
+    useJUnitPlatform()
+}
