@@ -69,4 +69,4 @@ echo Installation complete.
 echo =====================================
 
 endlocal
-pause
+exit /b 0
