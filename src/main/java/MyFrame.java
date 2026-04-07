@@ -40,17 +40,17 @@ class MyFrame extends JFrame implements ActionListener {
         else if("Sync".equals(cmd)) {
             ConfigSyncManager.resetSyncFlag();
 
-            HelperFunctions.performSyncWithProgress(
+            ConfigSyncManager.performSyncWithProgress(
                 getOwner(), 
                 ()->ConfigSyncManager.syncOnce(), 
                 ()-> {
                     String[] sub_options = AppBackend.getConfigValues("Subject").toArray(new String[0]);
                     
                     // Update the EXISTING JComboBox
-                    p1.labSub.setModel(new DefaultComboBoxModel<>(sub_options));
+                    p1.cb1.setModel(new DefaultComboBoxModel<>(sub_options));
                     
                     if (sub_options.length > 0) {
-                        p1.labSub.setSelectedIndex(sub_options.length - 1);
+                        p1.cb1.setSelectedIndex(sub_options.length - 1);
                     }
                     
                     p1.revalidate();
