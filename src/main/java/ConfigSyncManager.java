@@ -2,6 +2,9 @@ package org.Miniproject;
 
 import java.io.File;
 
+import javax.swing.*;
+import java.awt.*;
+
 public class ConfigSyncManager {
 
     private static final String APP_FOLDER = System.getenv("APPDATA") + "\\SessionTracker";
@@ -55,5 +58,40 @@ public class ConfigSyncManager {
             System.err.println("Failed to reset configuration sync flag.");
             e.printStackTrace();
         }
+    }
+
+    public static void performSyncWithProgress(Window parent, Runnable syncTask, Runnable onComplete) {
+        JDialog syncDialog = new JDialog(parent, "Data Sync", Dialog.ModalityType.APPLICATION_MODAL);
+        syncDialog.setUndecorated(true);
+        
+        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        panel.setBorder(BorderFactory.createLineBorder(Color.GRAY, 2));
+        
+        JLabel label = new JLabel("\u27F3 Syncing with Cloud... Please wait.", JLabel.CENTER);
+        JProgressBar progressBar = new JProgressBar();
+        progressBar.setIndeterminate(true); // Spinning effect
+        
+        panel.add(label, BorderLayout.NORTH);
+        panel.add(progressBar, BorderLayout.CENTER);
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        
+        syncDialog.add(panel);
+        syncDialog.pack();
+        syncDialog.setLocationRelativeTo(parent);
+
+        // Start the background thread
+        new Thread(() -> {
+            try {
+                syncTask.run();  
+            } finally {
+                SwingUtilities.invokeLater(() -> {
+                    syncDialog.dispose();
+                    onComplete.run(); // when background thread finishes 
+                });
+            }
+        }).start();
+
+        // Show the dialog until background thread is running to avoid user interaction 
+        syncDialog.setVisible(true);
     }
 }
