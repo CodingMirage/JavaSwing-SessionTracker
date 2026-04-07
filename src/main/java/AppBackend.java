@@ -138,7 +138,7 @@ public class AppBackend {
     // Below function gets department and subject values from the config table created in local
     public static List<String> getConfigValues(String query) {
         List<String> departmentOrSubjectValues = new ArrayList<>();
-        String sql = "SELECT item_value FROM %s WHERE category = ?".formatted(localConfigTable);
+        String sql = "SELECT item_value FROM %s WHERE category = ? ORDER BY item_value".formatted(localConfigTable);
 
         try (Connection conn = DriverManager.getConnection(dbUrl);
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
