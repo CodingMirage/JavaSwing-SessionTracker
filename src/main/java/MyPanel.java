@@ -103,6 +103,7 @@ class MyPanel extends JPanel {
                         }))
                         .toArray(String[]::new)
         ));
+        cb1.setSelectedItem(null);
     }
 
     //Dialog box for Confirmation
