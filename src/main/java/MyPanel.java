@@ -3,6 +3,7 @@ package org.Miniproject;
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Comparator;
 
 class MyPanel extends JPanel {
     JLabel l1,l2,l3,l4,l5,l6;              //you can change the variable names if you want
@@ -50,8 +51,7 @@ class MyPanel extends JPanel {
         tf1.setBounds(130,120,150,25);
         tf2 = new JTextField();
         tf2.setBounds(130,170,150,25);
-        String[] sub_options = AppBackend.getConfigValues("Subject").toArray(new String[0]); //fetches subject from Configuration table
-        cb1 = new JComboBox<>(sub_options);
+        cb1 = new JComboBox<>();
         cb1.setBounds(130,220,150,25);
         l1 = new JLabel("Name");
         l1.setBounds(130,95,150,30);
@@ -88,6 +88,21 @@ class MyPanel extends JPanel {
         this.add(l2);
         this.add(l5);
         this.add(l6);
+        refreshSubjects();
+    }
+
+    // loads the option into the jcombobox
+    public void refreshSubjects() {
+        if (cb1 == null) return;
+
+        cb1.setModel(new DefaultComboBoxModel<>(
+                AppBackend.getConfigValues("Subject").stream()
+                        .sorted(Comparator.comparingDouble(s -> {
+                            try { return Float.parseFloat(s.split(" ")[0]); }
+                            catch (Exception e) { return Float.MAX_VALUE; }
+                        }))
+                        .toArray(String[]::new)
+        ));
     }
 
     //Dialog box for Confirmation
