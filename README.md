@@ -273,7 +273,7 @@ When run on a target machine:
 3. `install.bat` executes silently to register the Windows Service
 
 <div align="center">
-  <img src="images/10-installer.png" alt="Installer Screenshot" width="60%" />
+  <img src="images/installer.png" alt="Installer Screenshot" width="60%" />
   <br/>
   <sub>Inno Setup installer — configure once, deploy across all lab machines</sub>
 </div>
