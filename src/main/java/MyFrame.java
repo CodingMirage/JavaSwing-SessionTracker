@@ -70,7 +70,7 @@ class MyFrame extends JFrame implements ActionListener {
     protected boolean ValueCheck(String usn,String name) {
         if(usn.isEmpty() || name.isEmpty() || usn.length() != 10)
             return false;
-        String pattern = "^1VI\\d{2}[A-Z]{2}\\d{3}$";  //regex only for 10-digit USN (vtu pattern)
+        String pattern = "^1[A-Z]{2}\\d{2}[A-Z]{2}\\d{3}$";  //regex only for 10-digit USN (vtu pattern)
         return usn.matches(pattern);
 
     }
