@@ -306,6 +306,24 @@ When run on a target machine:
 
 ---
 
+---
+
+## 🤝 Contributing & Forking
+
+This project is built to be adapted. Every institution has different lab layouts, policies, and infrastructure needs — so rather than trying to make Session Tracker a one-size-fits-all product, it's designed to be **forked and customized**.
+
+If you're a developer looking to build something similar (or improve on this), feel free to:
+
+- **Fork the repository** and adapt it to your own institution's requirements
+- Swap out Supabase for your preferred backend (Firebase, self-hosted Postgres, etc.)
+- Extend the USN decoding logic for different university ID formats
+- Build out the Admin Dashboard or other roadmap items above
+- Submit a PR if you build something you think others could benefit from
+
+No permission needed — just credit the original where it's due. If you do build your own version, I'd genuinely love to hear about it. Open an issue or drop a link in a discussion thread!
+
+---
+
 ## 📄 License
 
 Distributed under the **MIT License**. See [`LICENSE`](LICENSE) for details.
